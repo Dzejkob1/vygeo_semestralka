@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <title>Hrad Brníčko</title>
+    <meta charset="utf-8">
+    <meta name="description" content="Ortofoto + mapa">
+    <meta name="keywords" content="Ortofoto, mapa, Brníčko, zřícenina, VYGEO, KGI, UPOL">
+    <meta name="author" content="4 z tanku a pes">
+
+    <link rel="shortcut icon" href="img/erb.png" type="image/x-icon">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<div id="sidebar">
+    <button id="sidebar-toggle" onclick="toggleSidebar()">
+        <span>❮</span>
+    </button>
+
+    <div class="sidebar-header">
+        <h1>Hrad Brníčko</h1>
+        <p>romantická zřícenina</p>
+    </div>
+
+    <div class="sidebar-content">
+        <h3>Poloha a význam</h3>
+        <p>Zřícenina hradu Brníčka se nachází na výrazném kopci nad obcí Brníčko, přibližně 7 km severně od Zábřehu. Díky své dominantní poloze a odlesněnému hradnímu vrchu je viditelná z širokého okolí a již po staletí patří k nejvýraznějším krajinným a historickým dominantám severní Moravy. Oblíbeným výletním cílem byla nejen v moderní době, ale i v 19. a první polovině 20. století, kdy sehrála roli symbolického místa regionálních i národních setkání.</p>
+        <h3>Vznik a raná historie</h3>
+        <p>Počátky hradu Brníčka nejsou zcela jasné, neboť se nedochovaly přímé písemné zprávy o jeho založení. Vznik hradu je kladen do první poloviny 14. století, pravděpodobně do 30. let, kdy došlo k rozdělení původního dubického panství. Stavitelem byl zřejmě Ctibor Morava, pravnuk Benedovy linie pánů z Otaslavic. První písemná zmínka o hradě pochází z roku 1356, kdy je uváděn v moravských zemských deskách.</p>
+        <img src="img/1848.jpg" alt="1848">
+        <h3>Architektura a opevnění</h3>
+        <p>Brníčko bylo vystavěno jako gotický hrad s výraznou obrannou funkcí. Základem byla mohutná plášťová hradba, doplněná příkopy, valy a několika baštami. Dominantou hradu byla hlavní obranná věž – hláska, vedle níž stál dvoupatrový obytný palác. Hradní areál byl stupňovitě rozložen na vrcholu kopce. Ze tří stran jej chránily strmé svahy, zatímco na jižní straně byl hrad přístupný po úzké šíji s bránou, jejíž opěrné zdi jsou patrné dodnes. Dochovaly se zbytky obvodových zdí, paláce i kamenných pilířů opevnění.</p>
+        <h3>Majitelé a vrchol moci</h3>
+        <p>Ve 14. a 15. století vystřídalo Brníčko několik šlechtických držitelů, mimo jiné Bernard Hecht ze Slavoňova. Nejvýznamnější kapitolu představuje období vlády Tunklů z Brníčka. Jan Tunkl z Drahanovic získal hrad roku 1434 a učinil z něj součást rozsáhlého majetkového celku. Jeho syn Jiřík starší Tunkl se stal legendární postavou regionálních dějin a hrdinou pověstí, lidových vyprávění i básní. Hrad tehdy plnil roli významného správního i vojenského centra.</p>
+        <h3>Válečné události a zánik</h3>
+        <p>Brníčko se osvědčilo jako pevnost v období markraběcích bojů i husitských válek. V česko-uherských konfliktech druhé poloviny 15. století se stalo cílem útoků stoupenců uherského krále Matyáše Korvína. Kolem roku 1471 bylo hradní sídlo dobyto a značně poškozeno. Přesto ještě krátce fungovalo, avšak po roce 1500 postupně ztratilo svůj význam. Roku 1513 je uváděno jako funkční, o několik let později již jako zbořené.</p>
+        <p>V 19. století se zřícenina stala místem připomínky husitské tradice Tunklů. Roku 1869 se zde konal první velký lidový tábor na severní Moravě s účastí několika tisíc lidí. Také v období první republiky a zejména ve 30. letech 20. století sloužilo Brníčko jako místo národních slavností, posilujících české vědomí v pohraniční oblasti. Dnes je hrad chráněnou kulturní památkou a oblíbeným cílem vlastivědných i rekreačních výletů.</p>
+        <img src="img/teraz.jpg" alt="teraz">
+        <a href="https://obecbrnicko.cz/hrad-brnicko">Více informací</a>
+    </div>
+
+    <div class="sidebar-footer">
+        KGI / VYGEO – Dream Team
+    </div>
+</div>
+    
+<div id="map"></div>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("closed");
+    }
+
+    // --- 1. INITIALIZATION ---
+    var map = L.map('map', {
+        center: [49.8953, 16.97211],
+        zoom: 19,
+        maxZoom: 21,
+        zoomControl: false 
+    });
+
+    // --- 2. BASE LAYERS ---
+    var mapycz_letecka = L.tileLayer(
+        "https://api.mapy.cz/v1/maptiles/aerial/256/{z}/{x}/{y}?apikey=5ZtGuQEtvV37xyC_1IJnglc8ZgP53ehgvFqTiHuaFoI", 
+        { attribution: "Map data © Seznam.cz, a.s.", maxZoom: 19 }
+    ).addTo(map);
+
+    let baseCartoLight = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', 
+        { attribution: '&copy; OSM contributors &copy; CARTO', subdomains: 'abcd', maxZoom: 21 }
+    );
+
+    const mapycz = L.tileLayer(
+        "https://api.mapy.cz/v1/maptiles/outdoor/256/{z}/{x}/{y}?apikey=5ZtGuQEtvV37xyC_1IJnglc8ZgP53ehgvFqTiHuaFoI", 
+        { attribution: "Map data © Seznam.cz, a.s.", maxZoom: 19 }
+    );
+
+    const ortofotoBrnicko = L.tileLayer(
+        "https://gis.upol.cz/brnicko/{z}/{x}/{y}.png", 
+        { attribution: "&copy; UPOL GIS – Ortofoto Brníčko", opacity: 1, maxZoom: 21, noWrap: true }
+    ).addTo(map);
+
+
+    // --- 3. ICONS SETUP (51x40 for Map) ---
+    // Note: This only affects the map markers, not the legend images
+    function createIcon(fileName, w, h) {
+        return L.icon({
+            iconUrl: 'img/' + fileName, 
+            iconSize: [w, h],      
+            iconAnchor: [w/2, h/2], 
+            popupAnchor: [0, -h/2], 
+            className: 'custom-marker-icon'
+        });
+    }
+
+    const icons = {
+        most:    createIcon('most.png', 25, 24),
+        zvez:    createIcon('zvez.png', 25, 24),
+        svez:    createIcon('svez.png', 25, 24),
+        vvez:    createIcon('vvez.png', 25, 24),
+        sklep:   createIcon('sklep.png', 25, 24),
+        nadvori: createIcon('nadvori.png', 25, 24),
+        basta:   createIcon('basta.png', 25, 24),
+        palac:   createIcon('palac.png', 25, 24),
+        prikop:  createIcon('prikop.png', 25, 24),
+        parkan:  createIcon('parkan.png', 25, 24)
+    };
+
+    // --- 4. STYLES DEFINITION ---
+    const styleBasta = { color: "#114ea1", weight: 3, fillColor: "#114ea1", fillOpacity: 0.3 };
+    const stylePalac = { color: "#114ea1", weight: 3, fillColor: "#114ea1", fillOpacity: 0.3 };
+    const styleHradniPrikop = { color: "#114ea1", weight: 3, opacity: 1 };
+    const styleParkan = { color: "#114ea1", weight: 3, opacity: 1 };
+
+    const pointStyles = {
+        "Most k bráně":   { type: 'icon', icon: icons.most },
+        "Západní věž":    { type: 'icon', icon: icons.zvez },
+        "Severní věž":    { type: 'icon', icon: icons.svez },
+        "Východní věž":   { type: 'icon', icon: icons.vvez },
+        "Propadlý sklep": { type: 'icon', icon: icons.sklep },
+        "Nádvoří":        { type: 'icon', icon: icons.nadvori },
+        "basta":  { type: 'icon', icon: icons.basta },
+        "palac":  { type: 'icon', icon: icons.palac },
+        "prikop": { type: 'icon', icon: icons.prikop },
+        "parkan": { type: 'icon', icon: icons.parkan },
+        "bašta":  { type: 'icon', icon: icons.basta },
+        "palác":  { type: 'icon', icon: icons.palac },
+        "hradní příkop": { type: 'icon', icon: icons.prikop },
+        "parkán": { type: 'icon', icon: icons.parkan },
+        "default": { type: 'circle', radius: 5, fillColor: "black", fillOpacity: 0.8 }
+    };
+
+    // --- 5. DATA LOADING ---
+    function loadGeoJSON(url, style = {}) {
+        return fetch(url).then(r => r.json()).then(data => L.geoJSON(data, {
+            style: style,
+            interactive: false 
+        }).addTo(map));
+    }
+
+    function loadPoints(url) {
+        return fetch(url).then(r => r.json()).then(data => L.geoJSON(data, {
+            pointToLayer: function(feature, latlng) {
+                let key = feature.properties.nazev || feature.properties.id || feature.properties.ID || "";
+                key = key ? key.toString().trim() : "";
+                let style = pointStyles[key];
+                if (!style) {
+                    let match = Object.keys(pointStyles).find(k => k.toLowerCase() === key.toLowerCase());
+                    if (match) style = pointStyles[match];
+                }
+                if (!style) style = pointStyles["default"];
+
+                if (style.type === 'icon') {
+                    return L.marker(latlng, { icon: style.icon });
+                } else {
+                    return L.circleMarker(latlng, style);
+                }
+            },
+            onEachFeature: function(feature, layer) {
+                if (feature.properties.nazev) {
+                    layer.bindPopup("<b>" + feature.properties.nazev + "</b><br>");
+                }
+            }
+        }).addTo(map));
+    }
+
+    const urls = {
+        basta: "https://raw.githubusercontent.com/Dzejkob1/vygeo_semestralka/main/json_oprava/basta.geojson",
+        body: "https://raw.githubusercontent.com/Dzejkob1/vygeo_semestralka/main/json_oprava/body.geojson",
+        hradni_prikop: "https://raw.githubusercontent.com/Dzejkob1/vygeo_semestralka/main/json_oprava/hradni_prikop.geojson",
+        palac: "https://raw.githubusercontent.com/Dzejkob1/vygeo_semestralka/main/json_oprava/palac.geojson",
+        parkan: "https://raw.githubusercontent.com/Dzejkob1/vygeo_semestralka/main/json_oprava/parkan.geojson",
+        cislovani: "https://raw.githubusercontent.com/Dzejkob1/vygeo_semestralka/main/json_oprava/cislovani.geojson"
+    };
+
+    // --- 6. EXECUTION ---
+    Promise.all([
+        loadGeoJSON(urls.basta, styleBasta),
+        loadPoints(urls.body),        
+        loadPoints(urls.cislovani),   
+        loadGeoJSON(urls.hradni_prikop, styleHradniPrikop),
+        loadGeoJSON(urls.palac, stylePalac),
+        loadGeoJSON(urls.parkan, styleParkan)
+    ]).then(([layerBasta, layerBody, layerCislovani, layerPrikop, layerPalac, layerParkan]) => {
+
+        // ============================================
+        // 1. CUSTOM LAYER CONTROL (Top Right)
+        // ============================================
+        const baseLayersData = [
+            { name: "letecká", layer: mapycz_letecka, active: true },
+            { name: "turistická", layer: mapycz, active: false },
+            { name: "Carto Light", layer: baseCartoLight, active: false }
+        ];
+
+        const overlaysData = [
+            { name: "ortofoto Brníčko", layer: ortofotoBrnicko, active: true },
+            { name: "bašta", layer: layerBasta, active: true },
+            { name: "palác", layer: layerPalac, active: true },
+            { name: "parkán", layer: layerParkan, active: true },
+            { name: "hradní příkop", layer: layerPrikop, active: true }
+        ];
+
+        var layerControl = L.control({ position: 'topright' });
+
+        layerControl.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'info layers collapsed'); 
+            L.DomEvent.disableClickPropagation(div);
+
+            var toggle = L.DomUtil.create('div', 'legend-toggle', div);
+            
+            // --- CHANGE 1: Set Initial Icon to Image (Not X) ---
+            toggle.innerHTML = '<img src="img/layers.png" class="layer-toggle-icon" alt="Layers">'; 
+            toggle.title = "Vrstvy";
+            
+            toggle.onclick = function() {
+                if (div.classList.contains('collapsed')) {
+                    // OPENING THE PANEL -> Show X
+                    div.classList.remove('collapsed');
+                    toggle.innerHTML = '<i>✖</i>'; 
+                } else {
+                    // CLOSING THE PANEL -> Show Image
+                    div.classList.add('collapsed');
+                    toggle.innerHTML = '<img src="img/layers.png" class="layer-toggle-icon" alt="Layers">'; 
+                }
+            };
+
+            var content = L.DomUtil.create('div', 'legend-content', div);
+            
+            // Base Layers
+            var titleBase = document.createElement('div');
+            titleBase.innerHTML = "<b>Podkladová mapa</b>";
+            titleBase.style.marginBottom = "10px";
+            content.appendChild(titleBase);
+
+            baseLayersData.forEach((item) => {
+                var row = document.createElement('label');
+                row.className = 'layer-item';
+                var input = document.createElement('input');
+                input.type = 'radio';
+                input.name = 'base_layer';
+                input.checked = item.active;
+                input.onchange = function() {
+                    baseLayersData.forEach(bl => map.removeLayer(bl.layer));
+                    map.addLayer(item.layer);
+                };
+                row.appendChild(input);
+                row.appendChild(document.createTextNode(item.name));
+                content.appendChild(row);
+            });
+
+            var hr = document.createElement('hr');
+            content.appendChild(hr);
+
+            // Overlays
+            var titleOver = document.createElement('div');
+            titleOver.innerHTML = "<b>Vrstvy</b>";
+            titleOver.style.marginBottom = "10px";
+            content.appendChild(titleOver);
+
+            overlaysData.forEach(item => {
+                var row = document.createElement('label');
+                row.className = 'layer-item';
+                
+                var input = document.createElement('input');
+                input.type = 'checkbox';
+                input.checked = item.active;
+                input.onchange = function() {
+                    if (input.checked) map.addLayer(item.layer);
+                    else map.removeLayer(item.layer);
+                };
+                row.appendChild(input);
+
+                if (item.icon) {
+                    var img = document.createElement('img');
+                    img.src = item.icon;
+                    img.className = 'layer-icon-small';
+                    img.alt = "";
+                    row.appendChild(img);
+                }
+
+                row.appendChild(document.createTextNode(item.name));
+                content.appendChild(row);
+            });
+
+            return div;
+        };
+        layerControl.addTo(map);
+
+
+        // ============================================
+        // 2. LEGEND (Bottom Right)
+        // ============================================
+        
+        const legendConfig = {
+            'nádvoří':        { type: 'image', src: 'img/nadvori.png' },
+            'propadlý sklep': { type: 'image', src: 'img/sklep.png' },
+            'východní věž':   { type: 'image', src: 'img/vvez.png' },
+            'severní věž':    { type: 'image', src: 'img/svez.png' },
+            'západní věž':    { type: 'image', src: 'img/zvez.png' },
+            'most k bráně':   { type: 'image', src: 'img/most.png' },
+            'bašta':          { type: 'image', src: 'img/basta.png' },
+            'palác':          { type: 'image', src: 'img/palac.png' },
+            'hradní příkop':  { type: 'image', src: 'img/prikop.png' },
+            'parkán':         { type: 'image', src: 'img/parkan.png'}
+        };
+
+        var legend = L.control({ position: 'topright' });
+
+        legend.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'info legend collapsed'); // Starts Closed
+            L.DomEvent.disableClickPropagation(div);
+
+            var toggle = L.DomUtil.create('div', 'legend-toggle', div);
+            
+            // --- CHANGE 2: Set Initial Icon to Menu (Not X) ---
+            toggle.innerHTML = '<i>☰</i>'; 
+            toggle.title = "Legenda";
+
+            var content = L.DomUtil.create('div', 'legend-content', div);
+
+            var groups = [
+                { title: "", items: ['nádvoří', 'propadlý sklep', 'východní věž', 'severní věž', 'západní věž', 'most k bráně',  'parkán', 'hradní příkop', 'palác', 'bašta'] }
+            ];
+
+            groups.forEach(group => {
+                group.items.forEach(name => {
+                    const config = legendConfig[name];
+                    if (!config) return; 
+
+                    let iconHtml = `<img src="${config.src}" class="legend-icon-img" alt="icon">`;
+
+                    var item = document.createElement('div');
+                    item.className = 'legend-item';
+                    item.innerHTML = `${iconHtml} <span>${name}</span>`;
+                    content.appendChild(item);
+                });
+            });
+
+            toggle.onclick = function() {
+                if (div.classList.contains('collapsed')) {
+                    // OPENING -> Show X
+                    div.classList.remove('collapsed');
+                    toggle.innerHTML = '<i>✖</i>';
+                } else {
+                    // CLOSING -> Show Menu
+                    div.classList.add('collapsed');
+                    toggle.innerHTML = '<i>☰</i>';
+                }
+            };
+
+            return div;
+        };
+        legend.addTo(map);
+
+        L.control.scale({ position: 'bottomleft', metric: true, imperial: false, maxWidth: 200 }).addTo(map);
+    });
+
+</script>
+
+</body>
+</html>
