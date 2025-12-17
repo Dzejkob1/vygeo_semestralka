@@ -167,9 +167,17 @@
                 }
             },
             onEachFeature: function(feature, layer) {
+                // 1. Bind the Popup (Existing code)
                 if (feature.properties.nazev) {
                     layer.bindPopup("<b>" + feature.properties.nazev + "</b><br>");
                 }
+
+                // 2. NEW: Zoom to point when clicked
+                layer.on('click', function(e) {
+                    // map.flyTo(coordinate, zoomLevel)
+                    // We use zoom level 21 (your maxZoom) to get really close
+                    map.flyTo(layer.getLatLng(), 21); 
+                });
             }
         }).addTo(map));
     }
