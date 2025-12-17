@@ -61,7 +61,7 @@
         document.getElementById("sidebar").classList.toggle("closed");
     }
 
-    // --- 1. INITIALIZATION ---
+    // inicializace mapy
     var map = L.map('map', {
         center: [49.8953, 16.97211],
         zoom: 19,
@@ -69,7 +69,7 @@
         zoomControl: false 
     });
 
-    // --- 2. BASE LAYERS ---
+    // podkladové vrstvy
     var mapycz_letecka = L.tileLayer(
         "https://api.mapy.cz/v1/maptiles/aerial/256/{z}/{x}/{y}?apikey=5ZtGuQEtvV37xyC_1IJnglc8ZgP53ehgvFqTiHuaFoI", 
         { attribution: "Map data © Seznam.cz, a.s.", maxZoom: 19 }
@@ -91,8 +91,7 @@
     ).addTo(map);
 
 
-    // --- 3. ICONS SETUP (51x40 for Map) ---
-    // Note: This only affects the map markers, not the legend images
+    //ikony
     function createIcon(fileName, w, h) {
         return L.icon({
             iconUrl: 'img/' + fileName, 
@@ -116,7 +115,7 @@
         parkan:  createIcon('parkan.png', 25, 24)
     };
 
-    // --- 4. STYLES DEFINITION ---
+    // znak. klíč
     const styleBasta = { color: "#114ea1", weight: 3, fillColor: "#114ea1", fillOpacity: 0.3 };
     const stylePalac = { color: "#114ea1", weight: 3, fillColor: "#114ea1", fillOpacity: 0.3 };
     const styleHradniPrikop = { color: "#114ea1", weight: 3, opacity: 1 };
@@ -140,7 +139,7 @@
         "default": { type: 'circle', radius: 5, fillColor: "black", fillOpacity: 0.8 }
     };
 
-    // --- 5. DATA LOADING ---
+    // vrstvy
     function loadGeoJSON(url, style = {}) {
         return fetch(url).then(r => r.json()).then(data => L.geoJSON(data, {
             style: style,
@@ -167,15 +166,13 @@
                 }
             },
             onEachFeature: function(feature, layer) {
-                // 1. Bind the Popup (Existing code)
+                
                 if (feature.properties.nazev) {
                     layer.bindPopup("<b>" + feature.properties.nazev + "</b><br>");
                 }
 
-                // 2. NEW: Zoom to point when clicked
+                //zoom na vrstvu
                 layer.on('click', function(e) {
-                    // map.flyTo(coordinate, zoomLevel)
-                    // We use zoom level 21 (your maxZoom) to get really close
                     map.flyTo(layer.getLatLng(), 21); 
                 });
             }
@@ -191,7 +188,7 @@
         cislovani: "https://raw.githubusercontent.com/Dzejkob1/vygeo_semestralka/main/json_oprava/cislovani.geojson"
     };
 
-    // --- 6. EXECUTION ---
+    // načtení
     Promise.all([
         loadGeoJSON(urls.basta, styleBasta),
         loadPoints(urls.body),        
@@ -201,9 +198,7 @@
         loadGeoJSON(urls.parkan, styleParkan)
     ]).then(([layerBasta, layerBody, layerCislovani, layerPrikop, layerPalac, layerParkan]) => {
 
-        // ============================================
-        // 1. CUSTOM LAYER CONTROL (Top Right)
-        // ============================================
+        // ovládací panel
         const baseLayersData = [
             { name: "letecká", layer: mapycz_letecka, active: true },
             { name: "turistická", layer: mapycz, active: false },
@@ -226,17 +221,17 @@
 
             var toggle = L.DomUtil.create('div', 'legend-toggle', div);
             
-            // --- CHANGE 1: Set Initial Icon to Image (Not X) ---
+            
             toggle.innerHTML = '<img src="img/layers.png" class="layer-toggle-icon" alt="Layers">'; 
             toggle.title = "Vrstvy";
             
             toggle.onclick = function() {
                 if (div.classList.contains('collapsed')) {
-                    // OPENING THE PANEL -> Show X
+                    
                     div.classList.remove('collapsed');
                     toggle.innerHTML = '<i>✖</i>'; 
                 } else {
-                    // CLOSING THE PANEL -> Show Image
+                    
                     div.classList.add('collapsed');
                     toggle.innerHTML = '<img src="img/layers.png" class="layer-toggle-icon" alt="Layers">'; 
                 }
@@ -305,9 +300,7 @@
         layerControl.addTo(map);
 
 
-        // ============================================
-        // 2. LEGEND (Bottom Right)
-        // ============================================
+        // legenda
         
         const legendConfig = {
             'nádvoří':        { type: 'image', src: 'img/nadvori.png' },
@@ -325,12 +318,12 @@
         var legend = L.control({ position: 'topright' });
 
         legend.onAdd = function(map) {
-            var div = L.DomUtil.create('div', 'info legend collapsed'); // Starts Closed
+            var div = L.DomUtil.create('div', 'info legend collapsed'); 
             L.DomEvent.disableClickPropagation(div);
 
             var toggle = L.DomUtil.create('div', 'legend-toggle', div);
             
-            // --- CHANGE 2: Set Initial Icon to Menu (Not X) ---
+           
             toggle.innerHTML = '<i>☰</i>'; 
             toggle.title = "Legenda";
 
@@ -356,11 +349,11 @@
 
             toggle.onclick = function() {
                 if (div.classList.contains('collapsed')) {
-                    // OPENING -> Show X
+                    
                     div.classList.remove('collapsed');
                     toggle.innerHTML = '<i>✖</i>';
                 } else {
-                    // CLOSING -> Show Menu
+                    
                     div.classList.add('collapsed');
                     toggle.innerHTML = '<i>☰</i>';
                 }
